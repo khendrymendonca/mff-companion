@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.models.character import CharacterType, Alignment, Tier, UserCharacter
 from app.models.floor import SLFloor
 import os
@@ -14,7 +15,7 @@ static_path = os.path.join(os.path.dirname(__file__), "..", "app", "static")
 templates = Jinja2Templates(directory=templates_path)
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 
-# Mock de dados para demonstração (enquanto Supabase não está configurado)
+# Mock de dados para demonstração
 MOCK_INVENTORY = [
     UserCharacter(name="Capitão América", base_type=CharacterType.COMBAT, base_alignment=Alignment.HERO, current_tier=Tier.T3),
     UserCharacter(name="Homem de Ferro", base_type=CharacterType.BLAST, base_alignment=Alignment.HERO, current_tier=Tier.T3),
@@ -22,6 +23,11 @@ MOCK_INVENTORY = [
     UserCharacter(name="Thanos", base_type=CharacterType.UNIVERSAL, base_alignment=Alignment.VILLAIN, current_tier=Tier.T4),
     UserCharacter(name="Duende Verde", base_type=CharacterType.SPEED, base_alignment=Alignment.VILLAIN, current_tier=Tier.T2),
 ]
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    # Retorna um 204 No Content para o favicon para parar o erro 500 se o arquivo não existir
+    return None
 
 @app.get("/")
 async def read_root(request: Request):
@@ -35,9 +41,15 @@ async def inventory(request: Request):
 async def shadowland(request: Request):
     floors = [
         SLFloor(number=1, name="Sala de Vilões", requirements={"alignment": Alignment.VILLAIN}),
-        SLFloor(number=2, name="Sala de Combate", requirements={"type": CharacterType.COMBAT})
+        SLFloor(number=2, name="Sala de Combate", requirements={"type": CharacterType.COMBAT}),
+        SLFloor(number=3, name="Velocidade / Herói", requirements={"type": CharacterType.SPEED, "alignment": Alignment.HERO})
     ]
-    return templates.TemplateResponse("shadowland.html", {"request": request, "floors": floors})
+    # CORREÇÃO: Passando o inventory para o template da Shadowland
+    return templates.TemplateResponse("shadowland.html", {
+        "request": request, 
+        "floors": floors, 
+        "inventory": [char.dict() for char in MOCK_INVENTORY]
+    })
 
 # Exportar o app para a Vercel
 app_vercel = app
