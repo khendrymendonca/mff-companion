@@ -3,40 +3,98 @@
 {% block content %}
 <div class="flex justify-between items-end mb-8">
     <div>
-        <h2 class="text-4xl font-black italic uppercase tracking-tighter">Seu Inventário</h2>
-        <p class="text-slate-400 text-sm mt-1">Gerencie seu elenco e prepare-se para as missões.</p>
+        <h2 class="text-4xl font-black italic uppercase tracking-tighter">Galeria de Heróis</h2>
+        <p class="text-slate-400 text-sm mt-1">Gerencie seu elenco real do Marvel Future Fight.</p>
     </div>
     <div class="flex gap-2">
-        <button class="bg-slate-800 px-4 py-2 rounded font-bold text-xs uppercase hover:bg-slate-700 transition">Filtrar</button>
-        <button class="marvel-red px-4 py-2 rounded font-bold text-xs uppercase hover:opacity-90 transition">Adicionar Novo</button>
+        <button onclick="document.getElementById('add-hero-modal').classList.remove('hidden')" class="marvel-red px-4 py-2 rounded font-bold text-xs uppercase hover:opacity-90 transition">Adicionar Herói</button>
     </div>
 </div>
 
+{% if not inventory %}
+<div class="text-center p-20 border-2 border-dashed border-slate-800 rounded-3xl">
+    <i class="fa-solid fa-mask text-64 text-slate-800 mb-4 block text-6xl"></i>
+    <p class="text-slate-500 font-bold uppercase italic">Sua galeria está vazia. Adicione seu primeiro herói!</p>
+</div>
+{% endif %}
+
 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-    {% for char in inventory %}
-    <div class="card-bg rounded-xl overflow-hidden border border-slate-800 hover:border-marvel-red transition-all duration-300 group shadow-lg">
+    {% for item in inventory %}
+    {% set char = item.characters %}
+    <div class="card-bg rounded-xl overflow-hidden border border-slate-800 hover:border-marvel-red transition-all duration-300 group shadow-lg {% if item.is_used %}opacity-50 grayscale{% endif %}">
         <div class="h-48 bg-slate-900 flex items-center justify-center relative">
             <i class="fa-solid fa-user-shield text-5xl text-slate-800 group-hover:text-slate-700 transition"></i>
             <div class="absolute top-3 left-3 flex gap-1">
-                <span class="px-2 py-0.5 rounded bg-black/60 text-[10px] font-black uppercase tracking-tighter">{{ char.current_tier }}</span>
+                <span class="px-2 py-0.5 rounded bg-black/60 text-[10px] font-black uppercase tracking-tighter">{{ item.current_tier }}</span>
             </div>
+            {% if item.is_used %}
+            <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <span class="bg-red-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase">USADO (F{{ item.last_floor_used }})</span>
+            </div>
+            {% endif %}
             <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
                 <p class="font-black text-sm uppercase italic truncate">{{ char.name }}</p>
             </div>
         </div>
         <div class="p-4 flex justify-between items-center">
             <span class="text-[10px] font-black uppercase text-slate-400">
-                <i class="fa-solid {% if char.base_type == 'Combat' %}fa-hand-fist text-red-500{% elif char.base_type == 'Blast' %}fa-bolt text-cyan-400{% elif char.base_type == 'Speed' %}fa-person-running text-green-400{% else %}fa-star text-purple-400{% endif %} mr-1"></i>
                 {{ char.base_type }}
             </span>
             <span class="text-[10px] font-black uppercase {% if char.base_alignment == 'Hero' %}text-blue-400{% else %}text-red-400{% endif %}">
                 {{ char.base_alignment }}
             </span>
         </div>
-        <div class="px-4 pb-4">
-            <button class="w-full py-2 bg-slate-800 rounded text-[10px] font-black uppercase hover:bg-slate-700 transition">Editar Status</button>
-        </div>
     </div>
     {% endfor %}
+</div>
+
+<!-- Modal Adicionar Herói -->
+<div id="add-hero-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-md shadow-2xl">
+        <h3 class="text-2xl font-black uppercase italic mb-6">Novo Herói</h3>
+        <form action="/add-hero" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nome do Personagem</label>
+                <input type="text" name="name" required class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:marvel-border outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tipo</label>
+                    <select name="base_type" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                        <option value="Combat">Combat</option>
+                        <option value="Blast">Blast</option>
+                        <option value="Speed">Speed</option>
+                        <option value="Universal">Universal</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Alinhamento</label>
+                    <select name="base_alignment" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                        <option value="Hero">Hero</option>
+                        <option value="Villain">Villain</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tier Atual</label>
+                    <select name="tier" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                        <option value="T2">Tier-2</option>
+                        <option value="Transcended">Transcended</option>
+                        <option value="T3">Tier-3</option>
+                        <option value="T4">Tier-4</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nível</label>
+                    <input type="number" name="level" value="60" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="document.getElementById('add-hero-modal').classList.add('hidden')" class="flex-1 bg-slate-800 py-3 rounded font-black uppercase text-xs hover:bg-slate-700 transition">Cancelar</button>
+                <button type="submit" class="flex-1 marvel-red py-3 rounded font-black uppercase text-xs hover:opacity-90 transition">Salvar Herói</button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
