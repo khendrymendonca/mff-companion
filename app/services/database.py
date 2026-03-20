@@ -105,25 +105,31 @@ class DatabaseService:
             alignments = self.supabase.table("meta_alignments").select("*").execute().data or []
             genders = self.supabase.table("meta_genders").select("*").execute().data or []
             tags = self.supabase.table("meta_tags").select("*").execute().data or []
+            tiers = self.supabase.table("meta_tiers").select("*").order("priority").execute().data or []
             return {
                 "types": types,
                 "alignments": alignments,
                 "genders": genders,
-                "tags": tags
+                "tags": tags,
+                "tiers": tiers
             }
         except Exception as e:
             print(f"Erro ao buscar metadados: {e}")
-            return {"types": [], "alignments": [], "genders": [], "tags": []}
+            return {"types": [], "alignments": [], "genders": [], "tags": [], "tiers": []}
 
-    def add_meta(self, category, name):
+    def add_meta(self, category, name, priority=1):
         try:
             table_map = {
                 "type": "meta_types",
                 "alignment": "meta_alignments",
                 "gender": "meta_genders",
-                "tag": "meta_tags"
+                "tag": "meta_tags",
+                "tier": "meta_tiers"
             }
-            return self.supabase.table(table_map[category]).insert({"name": name}).execute()
+            data = {"name": name}
+            if category == "tier":
+                data["priority"] = priority
+            return self.supabase.table(table_map[category]).insert(data).execute()
         except Exception as e:
             print(f"Erro ao adicionar metadado: {e}")
             return None
@@ -134,7 +140,8 @@ class DatabaseService:
                 "type": "meta_types",
                 "alignment": "meta_alignments",
                 "gender": "meta_genders",
-                "tag": "meta_tags"
+                "tag": "meta_tags",
+                "tier": "meta_tiers"
             }
             return self.supabase.table(table_map[category]).delete().eq("id", item_id).execute()
         except Exception as e:

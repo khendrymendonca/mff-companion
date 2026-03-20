@@ -134,6 +134,7 @@
 
 <script>
     const inventory = {{ inventory | tojson | safe }};
+    const meta = {{ meta | tojson | safe }};
 
     function selectRoom(room) {
         document.getElementById('welcome-message').classList.add('hidden');
@@ -156,6 +157,12 @@
         const grid = document.getElementById('character-grid');
         grid.innerHTML = '';
 
+        // MAPEIA PRIORIDADES DOS TIERS
+        const tierPriorities = {};
+        meta.tiers.forEach(t => {
+            tierPriorities[t.name] = t.priority;
+        });
+
         // MOTOR DE RECOMENDAÇÃO GRANULAR
         const recommended = inventory.filter(item => {
             if (item.is_used) return false;
@@ -173,8 +180,10 @@
             
             return typeMatch && alignMatch && genderMatch && tagMatch;
         }).sort((a, b) => {
-            const tiers = { 'T2': 1, 'Transcended': 2, 'T3': 3, 'T4': 4 };
-            return tiers[a.current_tier] - tiers[b.current_tier];
+            // ORDENAÇÃO DINÂMICA POR PRIORIDADE CADASTRADA
+            const pA = tierPriorities[a.current_tier] || 99;
+            const pB = tierPriorities[b.current_tier] || 99;
+            return pA - pB;
         });
 
         recommended.forEach(item => {

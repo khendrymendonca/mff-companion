@@ -94,5 +94,40 @@
             <button type="submit" class="marvel-red px-3 py-2 rounded text-xs">+</button>
         </form>
     </div>
+
+    <!-- Tiers -->
+    <div class="card-bg p-6 rounded-2xl border border-slate-800 col-span-full mt-8">
+        <h3 class="text-lg font-black uppercase italic mb-4 text-orange-400">Hierarquia de Tiers (Prioridade de Uso)</h3>
+        <p class="text-xs text-slate-500 mb-6">Defina a prioridade: **1** (Herói mais fraco, sugerir primeiro) até **10** (Herói poderoso, poupar para o fim).</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {% for item in meta.tiers %}
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+                <div>
+                    <span class="block text-xs font-black text-slate-500 uppercase">Prioridade {{ item.priority }}</span>
+                    <span class="text-xl font-black italic text-white">{{ item.name }}</span>
+                </div>
+                <form action="/delete-meta" method="POST">
+                    <input type="hidden" name="category" value="tier">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" class="text-red-600 hover:text-red-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+
+        <form action="/add-meta" method="POST" class="mt-8 flex flex-col md:flex-row gap-4 max-w-2xl bg-slate-800/50 p-6 rounded-2xl">
+            <input type="hidden" name="category" value="tier">
+            <div class="flex-1">
+                <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nome do Tier</label>
+                <input type="text" name="name" placeholder="Ex: Tier-3" required class="w-full bg-slate-900 border border-slate-700 rounded px-4 py-3 text-sm">
+            </div>
+            <div class="w-full md:w-32">
+                <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Prioridade (1-10)</label>
+                <input type="number" name="priority" value="1" min="1" max="10" required class="w-full bg-slate-900 border border-slate-700 rounded px-4 py-3 text-sm text-center">
+            </div>
+            <button type="submit" class="marvel-red px-8 py-3 rounded font-black uppercase text-xs self-end mb-0.5">Adicionar Tier</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

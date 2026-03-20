@@ -107,8 +107,8 @@ async def settings(request: Request):
         })
 
 @app.post("/add-meta")
-async def add_meta(category: str = Form(...), name: str = Form(...)):
-    db.add_meta(category, name)
+async def add_meta(category: str = Form(...), name: str = Form(...), priority: int = Form(1)):
+    db.add_meta(category, name, priority)
     return RedirectResponse(url="/settings", status_code=303)
 
 @app.post("/delete-meta")

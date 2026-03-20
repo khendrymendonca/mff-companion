@@ -93,10 +93,9 @@
                 <div>
                     <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tier Atual</label>
                     <select name="tier" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
-                        <option value="T2">Tier-2</option>
-                        <option value="Transcended">Transcended</option>
-                        <option value="T3">Tier-3</option>
-                        <option value="T4">Tier-4</option>
+                        {% for t in meta.tiers %}
+                        <option value="{{ t.name }}">{{ t.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div>
