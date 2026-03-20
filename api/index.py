@@ -4,17 +4,23 @@ from fastapi.staticfiles import StaticFiles
 from app.models.character import CharacterType, Alignment, Tier, UserCharacter
 from app.models.floor import SLFloor
 import os
+import sys
+
+# Garante que o diretório raiz esteja no PATH para imports
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 app = FastAPI()
 
-# Configuração de templates e estáticos
-templates_path = os.path.join(os.path.dirname(__file__), "..", "app", "templates")
-static_path = os.path.join(os.path.dirname(__file__), "..", "app", "static")
+# Caminhos Absolutos para Vercel
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "app", "templates"))
 
-templates = Jinja2Templates(directory=templates_path)
-app.mount("/static", StaticFiles(directory=static_path), name="static")
+# Montar estáticos se a pasta existir
+static_dir = os.path.join(BASE_DIR, "app", "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Mock de dados para demonstração
+# Mock de dados
 MOCK_INVENTORY = [
     UserCharacter(name="Capitão América", base_type=CharacterType.COMBAT, base_alignment=Alignment.HERO, current_tier=Tier.T3),
     UserCharacter(name="Homem de Ferro", base_type=CharacterType.BLAST, base_alignment=Alignment.HERO, current_tier=Tier.T3),
@@ -29,15 +35,14 @@ async def favicon():
 
 @app.get("/")
 async def read_root(request: Request):
-    # Calculando estatísticas no Python para evitar erros no Jinja2
-    t3_trans = len([c for c in MOCK_INVENTORY if c.current_tier in [Tier.T3, Tier.TRANSCENDED]])
-    t4 = len([c for c in MOCK_INVENTORY if c.current_tier == Tier.T4])
+    t3_count = len([c for c in MOCK_INVENTORY if c.current_tier in [Tier.T3, Tier.TRANSCENDED]])
+    t4_count = len([c for c in MOCK_INVENTORY if c.current_tier == Tier.T4])
     
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
         "inventory": MOCK_INVENTORY,
-        "t3_count": t3_trans,
-        "t4_count": t4
+        "t3_count": t3_count,
+        "t4_count": t4_count
     })
 
 @app.get("/inventory")
@@ -51,8 +56,15 @@ async def shadowland(request: Request):
         SLFloor(number=2, name="Sala de Combate", requirements={"type": CharacterType.COMBAT}),
         SLFloor(number=3, name="Velocidade / Herói", requirements={"type": CharacterType.SPEED, "alignment": Alignment.HERO})
     ]
-    # Convertendo personagens para dicionário para o JS do template
-    inventory_dicts = [char.dict() for char in MOCK_INVENTORY]
+    # Garantir que os enums sejam serializáveis para JSON
+    inventory_dicts = []
+    for char in MOCK_INVENTORY:
+        d = char.dict()
+        d['base_type'] = str(d['base_type'].value)
+        d['base_alignment'] = str(d['base_alignment'].value)
+        d['current_tier'] = str(d['current_tier'].value)
+        inventory_dicts.append(d)
+
     return templates.TemplateResponse("shadowland.html", {
         "request": request, 
         "floors": floors, 
