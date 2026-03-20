@@ -42,23 +42,40 @@ async def gallery(request: Request):
     return templates.TemplateResponse("inventory.html", {"request": request, "inventory": heroes})
 
 @app.post("/add-hero")
-async def add_hero(name: str = Form(...), base_type: str = Form(...), base_alignment: str = Form(...), tier: str = Form(...), level: int = Form(...)):
-    db.add_hero(name, base_type, base_alignment, tier, level)
+async def add_hero(
+    name: str = Form(...), 
+    base_type: str = Form(...), 
+    base_alignment: str = Form(...), 
+    gender: str = Form(...),
+    tags: str = Form(""),
+    tier: str = Form(...), 
+    level: int = Form(...)
+):
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+    db.add_hero(name, base_type, base_alignment, gender, tag_list, tier, level)
     return RedirectResponse(url="/gallery", status_code=303)
 
 @app.get("/shadowland")
 async def shadowland(request: Request):
-    floors = db.get_sl_floors()
+    rooms = db.get_sl_rooms()
     heroes = db.get_heroes()
     return templates.TemplateResponse("shadowland.html", {
         "request": request, 
-        "floors": floors, 
+        "floors": rooms, 
         "inventory": heroes
     })
 
-@app.post("/add-floor")
-async def add_floor(number: int = Form(...), name: str = Form(...), req_type: str = Form(...), req_alignment: str = Form(...)):
-    db.add_floor(number, name, req_type, req_alignment)
+@app.post("/add-room")
+async def add_room(
+    floor_number: int = Form(...), 
+    room_name: str = Form(...), 
+    req_type: str = Form(...), 
+    req_alignment: str = Form(...),
+    req_gender: str = Form(...),
+    req_tags: str = Form("")
+):
+    tag_list = [t.strip() for t in req_tags.split(",") if t.strip()]
+    db.add_room(floor_number, room_name, req_type, req_alignment, req_gender, tag_list)
     return RedirectResponse(url="/shadowland", status_code=303)
 
 @app.post("/mark-used")

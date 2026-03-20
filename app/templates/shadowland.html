@@ -2,86 +2,92 @@
 
 {% block content %}
 <div class="flex flex-col md:flex-row gap-8">
-    <!-- Seletor de Andar -->
+    <!-- Lista de Andares (Agrupada) -->
     <div class="w-full md:w-1/3">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-black italic uppercase tracking-tight">Andares SL</h2>
+            <h2 class="text-2xl font-black italic uppercase tracking-tight">Shadowland</h2>
             <div class="flex gap-2">
                 <form action="/reset-week" method="POST">
                     <button type="submit" class="bg-slate-800 p-2 rounded text-xs hover:bg-red-900 transition" title="Reset Semanal">
                         <i class="fa-solid fa-rotate"></i>
                     </button>
                 </form>
-                <button onclick="document.getElementById('add-floor-modal').classList.remove('hidden')" class="bg-slate-800 p-2 rounded text-xs hover:bg-slate-700 transition">
+                <button onclick="document.getElementById('add-room-modal').classList.remove('hidden')" class="bg-slate-800 p-2 rounded text-xs hover:bg-slate-700 transition">
                     <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
         </div>
-        
-        <div class="space-y-3 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-            {% for floor in floors %}
-            <button onclick="selectFloor({{ floor.floor_number }}, '{{ floor.room_name }}', '{{ floor.req_type }}', '{{ floor.req_alignment }}')" 
-                    class="w-full text-left card-bg p-4 rounded-lg border border-slate-700 hover:marvel-border hover:border transition flex justify-between items-center group">
-                <div>
-                    <span class="text-slate-500 font-black text-xs uppercase mr-2">F{{ floor.floor_number }}</span>
-                    <span class="font-bold text-sm">{{ floor.room_name }}</span>
-                </div>
-                <div class="flex gap-2">
-                    <span class="text-[8px] font-black uppercase text-slate-500">{{ floor.req_type }}</span>
-                    <i class="fa-solid fa-chevron-right text-xs text-slate-600 group-hover:text-white transition"></i>
-                </div>
-            </button>
+
+        <!-- Agrupamento de Salas por Andar -->
+        <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+            {% set last_floor = 0 %}
+            {% for room in floors %}
+                {% if room.floor_number != last_floor %}
+                    <div class="mt-4 border-b border-slate-800 pb-2">
+                        <span class="text-marvel-red font-black italic text-sm">ANDAR {{ room.floor_number }}</span>
+                    </div>
+                {% endif %}
+                <button onclick="selectRoom({{ room | tojson | safe }})" 
+                        class="w-full text-left card-bg p-3 rounded-lg border border-slate-700 hover:marvel-border transition flex justify-between items-center group mt-2">
+                    <div>
+                        <span class="font-bold text-xs uppercase">{{ room.room_name }}</span>
+                        <div class="flex gap-1 mt-1">
+                            <span class="text-[7px] bg-slate-800 px-1 py-0.5 rounded text-slate-400">{{ room.req_type }}</span>
+                            <span class="text-[7px] bg-slate-800 px-1 py-0.5 rounded text-slate-400">{{ room.req_alignment }}</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-600 group-hover:text-white"></i>
+                </button>
+                {% set last_floor = room.floor_number %}
             {% endfor %}
-            {% if not floors %}
-            <p class="text-slate-600 italic text-xs p-4 text-center">Nenhum andar mapeado.</p>
-            {% endif %}
         </div>
     </div>
 
-    <!-- Recomendações e Uso -->
+    <!-- Recomendações Granulares -->
     <div class="w-full md:w-2/3" id="recommendation-panel">
         <div id="welcome-message" class="h-full flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-slate-700 rounded-2xl">
             <i class="fa-solid fa-tower-observation text-6xl text-slate-700 mb-4"></i>
-            <h3 class="text-xl font-bold text-slate-400 italic">Mapeie ou selecione um andar para gerenciar sua subida.</h3>
+            <h3 class="text-xl font-bold text-slate-400 italic">Escolha uma porta do andar para ver as recomendações táticas.</h3>
         </div>
 
         <div id="results-panel" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 id="selected-floor-title" class="text-3xl font-black italic uppercase tracking-tight">Andar X</h2>
-                    <p id="selected-floor-reqs" class="text-marvel-red font-black uppercase text-xs tracking-widest mt-1">REQUISITOS: ???</p>
+            <div class="mb-8">
+                <h2 id="selected-room-title" class="text-3xl font-black italic uppercase tracking-tight">Sala X</h2>
+                <div id="selected-room-tags" class="flex flex-wrap gap-2 mt-2">
+                    <!-- Tags de Requisito -->
                 </div>
             </div>
 
             <div class="mb-4">
-                <h4 class="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Heróis Recomendados (Disponíveis)</h4>
+                <h4 class="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Heróis que atendem aos requisitos:</h4>
                 <div id="character-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Personagens injetados via JS -->
+                    <!-- Heróis Recomendados -->
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Adicionar Andar -->
-<div id="add-floor-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-md shadow-2xl">
-        <h3 class="text-2xl font-black uppercase italic mb-6">Mapear Novo Andar</h3>
-        <form action="/add-floor" method="POST" class="space-y-4">
+<!-- Modal Adicionar Sala -->
+<div id="add-room-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
+        <h3 class="text-2xl font-black uppercase italic mb-6">Mapear Novo Desafio</h3>
+        <form action="/add-room" method="POST" class="space-y-4">
             <div class="grid grid-cols-3 gap-4">
-                <div class="col-span-1">
-                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nº Andar</label>
-                    <input type="number" name="number" required class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                <div>
+                    <label class="label-style">Andar</label>
+                    <input type="number" name="floor_number" required class="input-style">
                 </div>
                 <div class="col-span-2">
-                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nome da Sala</label>
-                    <input type="text" name="name" placeholder="Ex: Sala de Vilões" required class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                    <label class="label-style">Tipo de Sala</label>
+                    <input type="text" name="room_name" placeholder="Relay, Rumble, Wave..." required class="input-style">
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            
+            <div class="grid grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tipo Exigido</label>
-                    <select name="req_type" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                    <label class="label-style">Tipo</label>
+                    <select name="req_type" class="input-style">
                         <option value="Any">Qualquer</option>
                         <option value="Combat">Combat</option>
                         <option value="Blast">Blast</option>
@@ -90,47 +96,83 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Alinhamento</label>
-                    <select name="req_alignment" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                    <label class="label-style">Lado</label>
+                    <select name="req_alignment" class="input-style">
                         <option value="Any">Qualquer</option>
                         <option value="Hero">Hero</option>
                         <option value="Villain">Villain</option>
+                        <option value="Neutral">Neutral</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label-style">Gênero</label>
+                    <select name="req_gender" class="input-style">
+                        <option value="Any">Qualquer</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
                     </select>
                 </div>
             </div>
+
+            <div>
+                <label class="label-style">Tags Extras (separadas por vírgula)</label>
+                <input type="text" name="req_tags" placeholder="Arma, Agilidade, Aranha..." class="input-style">
+            </div>
+
             <div class="flex gap-3 pt-4">
-                <button type="button" onclick="document.getElementById('add-floor-modal').classList.add('hidden')" class="flex-1 bg-slate-800 py-3 rounded font-black uppercase text-xs hover:bg-slate-700 transition">Cancelar</button>
-                <button type="submit" class="flex-1 marvel-red py-3 rounded font-black uppercase text-xs hover:opacity-90 transition">Salvar Andar</button>
+                <button type="button" onclick="document.getElementById('add-room-modal').classList.add('hidden')" class="flex-1 bg-slate-800 py-3 rounded font-black uppercase text-xs">Cancelar</button>
+                <button type="submit" class="flex-1 marvel-red py-3 rounded font-black uppercase text-xs">Salvar Sala</button>
             </div>
         </form>
     </div>
 </div>
 
+<style>
+    .input-style { @apply w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none focus:marvel-border; }
+    .label-style { @apply block text-[10px] font-black uppercase text-slate-500 mb-1; }
+</style>
+
 <script>
     const inventory = {{ inventory | tojson | safe }};
 
-    function selectFloor(num, name, type, alignment) {
+    function selectRoom(room) {
         document.getElementById('welcome-message').classList.add('hidden');
         document.getElementById('results-panel').classList.remove('hidden');
         
-        document.getElementById('selected-floor-title').innerText = `F${num} - ${name}`;
-        document.getElementById('selected-floor-reqs').innerText = `TIPO: ${type} | ALINHAMENTO: ${alignment}`;
+        document.getElementById('selected-room-title').innerText = `Andar ${room.floor_number} - ${room.room_name}`;
+        
+        const tagsContainer = document.getElementById('selected-room-tags');
+        tagsContainer.innerHTML = '';
+        const reqs = [room.req_type, room.req_alignment, room.req_gender];
+        reqs.forEach(req => {
+            if(req !== 'Any') {
+                const badge = document.createElement('span');
+                badge.className = 'px-3 py-1 bg-marvel-red/20 text-marvel-red text-[10px] font-black uppercase rounded-full border border-marvel-red/30';
+                badge.innerText = req;
+                tagsContainer.appendChild(badge);
+            }
+        });
 
         const grid = document.getElementById('character-grid');
         grid.innerHTML = '';
 
-        // Lógica de Recomendação Especialista
+        // MOTOR DE RECOMENDAÇÃO GRANULAR
         const recommended = inventory.filter(item => {
             if (item.is_used) return false;
             
             const char = item.characters;
-            // Se for Universal, passa em quase tudo (exceto restrição de alinhamento)
-            const typeMatch = (type === 'Any' || char.base_type === type || char.base_type === 'Universal');
-            const alignMatch = (alignment === 'Any' || char.base_alignment === alignment);
+            const typeMatch = (room.req_type === 'Any' || char.base_type === room.req_type || char.base_type === 'Universal');
+            const alignMatch = (room.req_alignment === 'Any' || char.base_alignment === room.req_alignment);
+            const genderMatch = (room.req_gender === 'Any' || char.gender === room.req_gender);
             
-            return typeMatch && alignMatch;
+            // Check Tags (se a sala exigir tags específicas)
+            let tagMatch = true;
+            if (room.req_tags && room.req_tags.length > 0) {
+                tagMatch = room.req_tags.every(tag => char.tags.includes(tag));
+            }
+            
+            return typeMatch && alignMatch && genderMatch && tagMatch;
         }).sort((a, b) => {
-            // Ordenar por Tier (Usar T2 primeiro para economizar T3/T4)
             const tiers = { 'T2': 1, 'Transcended': 2, 'T3': 3, 'T4': 4 };
             return tiers[a.current_tier] - tiers[b.current_tier];
         });
@@ -138,12 +180,11 @@
         recommended.forEach(item => {
             const char = item.characters;
             const card = document.createElement('div');
-            card.className = 'card-bg rounded-lg p-4 border border-slate-700 hover:marvel-border transition cursor-pointer relative group';
+            card.className = 'card-bg rounded-lg p-4 border border-slate-700 hover:marvel-border transition relative';
             
-            // Lógica de Alerta: se ele foi usado em andar muito alto semana passada, avisa!
             let alertHtml = '';
-            if (item.last_floor_used > num + 10) {
-                alertHtml = `<div class="absolute -top-2 -right-2 bg-yellow-500 text-black text-[8px] font-black px-2 py-1 rounded shadow-lg z-10">POUPE! (Usado F${item.last_floor_used})</div>`;
+            if (item.last_floor_used > room.floor_number + 5) {
+                alertHtml = `<div class="absolute -top-2 -right-2 bg-yellow-500 text-black text-[8px] font-black px-2 py-1 rounded shadow-lg z-10">POUPE! (F${item.last_floor_used})</div>`;
             }
 
             card.innerHTML = `
@@ -152,11 +193,12 @@
                     <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-black/40 mb-2">${item.current_tier}</span>
                     <h4 class="font-bold text-xs mb-1">${char.name}</h4>
                     <p class="text-[8px] text-slate-500 uppercase font-black">${char.base_type} | ${char.base_alignment}</p>
+                    <p class="text-[7px] text-slate-600 mt-1">${char.gender}</p>
                     
                     <form action="/mark-used" method="POST" class="mt-4 w-full">
                         <input type="hidden" name="inventory_id" value="${item.id}">
-                        <input type="hidden" name="floor_number" value="${num}">
-                        <button type="submit" class="w-full py-1.5 bg-slate-800 text-[8px] font-black uppercase rounded group-hover:bg-red-600 transition">Usar Herói</button>
+                        <input type="hidden" name="floor_number" value="${room.floor_number}">
+                        <button type="submit" class="w-full py-1.5 bg-slate-800 text-[8px] font-black uppercase rounded hover:bg-red-600 transition">Usar Herói</button>
                     </form>
                 </div>
             `;
@@ -164,7 +206,7 @@
         });
         
         if (recommended.length === 0) {
-            grid.innerHTML = '<div class="col-span-full p-8 text-center text-slate-600 italic text-sm">Nenhum herói disponível para este requisito.</div>';
+            grid.innerHTML = '<div class="col-span-full p-8 text-center text-slate-600 italic text-sm">Nenhum herói disponível que atenda a TODAS as restrições desta sala.</div>';
         }
     }
 </script>

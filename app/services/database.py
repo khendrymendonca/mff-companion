@@ -16,39 +16,43 @@ class DatabaseService:
         # Busca da tabela user_inventory e faz join com characters
         response = self.supabase.table("user_inventory").select("*, characters(*)").execute()
         return response.data
-
-    def add_hero(self, name, b_type, b_alignment, tier, level):
-        # Primeiro cria na tabela global de personagens se não existir
-        char_res = self.supabase.table("characters").select("*").eq("name", name).execute()
-        if not char_res.data:
-            char_res = self.supabase.table("characters").insert({
-                "name": name, 
-                "base_type": b_type, 
-                "base_alignment": b_alignment
-            }).execute()
-        
-        char_id = char_res.data[0]['id']
-        
-        # Depois adiciona ao inventário do usuário
-        return self.supabase.table("user_inventory").insert({
-            "character_id": char_id,
-            "current_tier": tier,
-            "level": level,
-            "is_used": False
+# HERÓIS (GALERIA)
+def add_hero(self, name, b_type, b_alignment, gender, tags, tier, level):
+    char_res = self.supabase.table("characters").select("*").eq("name", name).execute()
+    if not char_res.data:
+        char_res = self.supabase.table("characters").insert({
+            "name": name, 
+            "base_type": b_type, 
+            "base_alignment": b_alignment,
+            "gender": gender,
+            "tags": tags if tags else []
         }).execute()
 
-    # SHADOWLAND (ANDARE E HISTÓRICO)
-    def get_sl_floors(self):
-        return self.supabase.table("sl_floors").select("*").order("floor_number").execute().data
+    char_id = char_res.data[0]['id']
+    return self.supabase.table("user_inventory").insert({
+        "character_id": char_id,
+        "current_tier": tier,
+        "level": level,
+        "is_used": False
+    }).execute()
 
-    def add_floor(self, number, name, req_type, req_alignment, notes=""):
-        return self.supabase.table("sl_floors").insert({
-            "floor_number": number,
-            "room_name": name,
-            "req_type": req_type,
-            "req_alignment": req_alignment,
-            "notes": notes
-        }).execute()
+# SHADOWLAND (SALAS POR ANDAR)
+def get_sl_rooms(self):
+    # Agrupa salas por andar para o front
+    rooms = self.supabase.table("sl_rooms").select("*").order("floor_number").execute().data
+    return rooms
+
+def add_room(self, floor_num, name, r_type, r_alignment, r_gender, r_tags=None, notes=""):
+    return self.supabase.table("sl_rooms").insert({
+        "floor_number": floor_num,
+        "room_name": name,
+        "req_type": r_type,
+        "req_alignment": r_alignment,
+        "req_gender": r_gender,
+        "req_tags": r_tags if r_tags else [],
+        "notes": notes
+    }).execute()
+
 
     def mark_hero_used(self, inventory_id, floor_number):
         # Marca como usado e salva o histórico
