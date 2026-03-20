@@ -1,7 +1,6 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from app.models.character import CharacterType, Alignment, Tier, UserCharacter
 from app.models.floor import SLFloor
 import os
@@ -26,12 +25,20 @@ MOCK_INVENTORY = [
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    # Retorna um 204 No Content para o favicon para parar o erro 500 se o arquivo não existir
-    return None
+    return Response(status_code=204)
 
 @app.get("/")
 async def read_root(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request, "inventory": MOCK_INVENTORY})
+    # Calculando estatísticas no Python para evitar erros no Jinja2
+    t3_trans = len([c for c in MOCK_INVENTORY if c.current_tier in [Tier.T3, Tier.TRANSCENDED]])
+    t4 = len([c for c in MOCK_INVENTORY if c.current_tier == Tier.T4])
+    
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request, 
+        "inventory": MOCK_INVENTORY,
+        "t3_count": t3_trans,
+        "t4_count": t4
+    })
 
 @app.get("/inventory")
 async def inventory(request: Request):
@@ -44,12 +51,12 @@ async def shadowland(request: Request):
         SLFloor(number=2, name="Sala de Combate", requirements={"type": CharacterType.COMBAT}),
         SLFloor(number=3, name="Velocidade / Herói", requirements={"type": CharacterType.SPEED, "alignment": Alignment.HERO})
     ]
-    # CORREÇÃO: Passando o inventory para o template da Shadowland
+    # Convertendo personagens para dicionário para o JS do template
+    inventory_dicts = [char.dict() for char in MOCK_INVENTORY]
     return templates.TemplateResponse("shadowland.html", {
         "request": request, 
         "floors": floors, 
-        "inventory": [char.dict() for char in MOCK_INVENTORY]
+        "inventory": inventory_dicts
     })
 
-# Exportar o app para a Vercel
 app_vercel = app

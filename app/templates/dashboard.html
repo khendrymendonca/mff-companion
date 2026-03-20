@@ -10,13 +10,13 @@
     <div class="card-bg p-6 rounded-xl border-l-4 border-yellow-500 shadow-xl transform hover:scale-105 transition">
         <h3 class="text-slate-400 font-bold mb-2 uppercase text-xs tracking-widest">Tier-3 / Transcended</h3>
         <p class="text-4xl font-black text-white">
-            {{ inventory|selectattr("current_tier", "in", ["T3", "Transcended"])|list|length }}
+            {{ t3_count }}
         </p>
     </div>
     <div class="card-bg p-6 rounded-xl border-l-4 border-cyan-400 shadow-xl transform hover:scale-105 transition">
         <h3 class="text-slate-400 font-bold mb-2 uppercase text-xs tracking-widest">Tier-4 Prontos</h3>
         <p class="text-4xl font-black text-white">
-            {{ inventory|selectattr("current_tier", "equalto", "T4")|list|length }}
+            {{ t4_count }}
         </p>
     </div>
 </div>
