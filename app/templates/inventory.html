@@ -21,12 +21,19 @@
 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
     {% for item in inventory %}
     {% set char = item.characters %}
-    <div class="card-bg rounded-xl overflow-hidden border border-slate-800 hover:border-marvel-red transition-all duration-300 group shadow-lg {% if item.is_used %}opacity-50 grayscale{% endif %}">
+    <div class="card-bg rounded-xl overflow-hidden border border-slate-800 hover:border-marvel-red transition-all duration-300 group shadow-lg {% if item.is_used %}opacity-50 grayscale{% endif %} relative">
         <div class="h-48 bg-slate-900 flex items-center justify-center relative">
             <i class="fa-solid fa-user-shield text-5xl text-slate-800 group-hover:text-slate-700 transition"></i>
             <div class="absolute top-3 left-3 flex gap-1">
                 <span class="px-2 py-0.5 rounded bg-black/60 text-[10px] font-black uppercase tracking-tighter">{{ item.current_tier }}</span>
             </div>
+            
+            <!-- Botão Editar (Aparece no Hover) -->
+            <button onclick='openEditModal({{ item | tojson | safe }})' 
+                    class="absolute top-3 right-3 bg-white/10 hover:bg-white/20 p-2 rounded-full opacity-0 group-hover:opacity-100 transition z-20">
+                <i class="fa-solid fa-pen-to-square text-xs"></i>
+            </button>
+
             {% if item.is_used %}
             <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <span class="bg-red-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase">USADO (F{{ item.last_floor_used }})</span>
@@ -55,7 +62,7 @@
         <form action="/add-hero" method="POST" class="space-y-4">
             <div>
                 <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nome do Personagem</label>
-                <input type="text" name="name" required class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm focus:marvel-border outline-none">
+                <input type="text" name="name" required class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -85,7 +92,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tags (ex: Arma, Spider)</label>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tags (separadas por vírgula)</label>
                     <input type="text" name="tags" placeholder="Agility, Weapon" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
                 </div>
             </div>
@@ -104,10 +111,87 @@
                 </div>
             </div>
             <div class="flex gap-3 pt-4">
-                <button type="button" onclick="document.getElementById('add-hero-modal').classList.add('hidden')" class="flex-1 bg-slate-800 py-3 rounded font-black uppercase text-xs hover:bg-slate-700 transition">Cancelar</button>
-                <button type="submit" class="flex-1 marvel-red py-3 rounded font-black uppercase text-xs hover:opacity-90 transition">Salvar Herói</button>
+                <button type="button" onclick="document.getElementById('add-hero-modal').classList.add('hidden')" class="flex-1 bg-slate-800 py-3 rounded font-black uppercase text-xs">Cancelar</button>
+                <button type="submit" class="flex-1 marvel-red py-3 rounded font-black uppercase text-xs">Salvar</button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- Modal EDITAR Herói (Novo) -->
+<div id="edit-hero-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-md shadow-2xl">
+        <h3 class="text-2xl font-black uppercase italic mb-6">Evoluir <span id="edit-hero-name" class="text-marvel-red">Herói</span></h3>
+        <form action="/update-hero" method="POST" class="space-y-4">
+            <input type="hidden" name="inventory_id" id="edit-inventory-id">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tipo (Uniforme)</label>
+                    <select name="base_type" id="edit-base-type" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                        {% for t in meta.types %}
+                        <option value="{{ t.name }}">{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Alinhamento</label>
+                    <select name="base_alignment" id="edit-base-alignment" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                        {% for a in meta.alignments %}
+                        <option value="{{ a.name }}">{{ a.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Gênero</label>
+                    <select name="gender" id="edit-gender" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                        {% for g in meta.genders %}
+                        <option value="{{ g.name }}">{{ g.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tags</label>
+                    <input type="text" name="tags" id="edit-tags" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Novo Tier</label>
+                    <select name="tier" id="edit-tier" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                        {% for t in meta.tiers %}
+                        <option value="{{ t.name }}">{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nível</label>
+                    <input type="number" name="level" id="edit-level" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="document.getElementById('edit-hero-modal').classList.add('hidden')" class="flex-1 bg-slate-800 py-3 rounded font-black uppercase text-xs">Cancelar</button>
+                <button type="submit" class="flex-1 marvel-red py-3 rounded font-black uppercase text-xs">Salvar Evolução</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditModal(item) {
+        const char = item.characters;
+        document.getElementById('edit-hero-name').innerText = char.name;
+        document.getElementById('edit-inventory-id').value = item.id;
+        document.getElementById('edit-base-type').value = char.base_type;
+        document.getElementById('edit-base-alignment').value = char.base_alignment;
+        document.getElementById('edit-gender').value = char.gender;
+        document.getElementById('edit-tags').value = char.tags ? char.tags.join(', ') : '';
+        document.getElementById('edit-tier').value = item.current_tier;
+        document.getElementById('edit-level').value = item.level;
+        
+        document.getElementById('edit-hero-modal').classList.remove('hidden');
+    }
+</script>
 {% endblock %}

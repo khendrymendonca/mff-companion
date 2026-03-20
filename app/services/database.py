@@ -134,16 +134,27 @@ class DatabaseService:
             print(f"Erro ao adicionar metadado: {e}")
             return None
 
-    def delete_meta(self, category, item_id):
+    def update_hero(self, inventory_id, tier, level, b_type, b_alignment, gender, tags):
         try:
-            table_map = {
-                "type": "meta_types",
-                "alignment": "meta_alignments",
-                "gender": "meta_genders",
-                "tag": "meta_tags",
-                "tier": "meta_tiers"
-            }
-            return self.supabase.table(table_map[category]).delete().eq("id", item_id).execute()
+            # 1. Buscar o character_id associado
+            inv = self.supabase.table("user_inventory").select("character_id").eq("id", inventory_id).single().execute()
+            char_id = inv.data['character_id']
+
+            # 2. Atualizar os dados de evolução no inventário
+            self.supabase.table("user_inventory").update({
+                "current_tier": tier,
+                "level": level
+            }).eq("id", inventory_id).execute()
+
+            # 3. Atualizar os dados base (Uniformes mudam Tipo/Tags/Lado)
+            self.supabase.table("characters").update({
+                "base_type": b_type,
+                "base_alignment": b_alignment,
+                "gender": gender,
+                "tags": tags if tags else []
+            }).eq("id", char_id).execute()
+
+            return True
         except Exception as e:
-            print(f"Erro ao deletar metadado: {e}")
-            return None
+            print(f"Erro ao atualizar herói: {e}")
+            return False

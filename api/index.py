@@ -77,6 +77,20 @@ async def add_hero(
     db.add_hero(name, base_type, base_alignment, gender, tag_list, tier, level)
     return RedirectResponse(url="/gallery", status_code=303)
 
+@app.post("/update-hero")
+async def update_hero(
+    inventory_id: int = Form(...),
+    base_type: str = Form(...), 
+    base_alignment: str = Form(...), 
+    gender: str = Form(...),
+    tags: str = Form(""),
+    tier: str = Form(...), 
+    level: int = Form(...)
+):
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+    db.update_hero(inventory_id, tier, level, base_type, base_alignment, gender, tag_list)
+    return RedirectResponse(url="/gallery", status_code=303)
+
 @app.get("/shadowland")
 async def shadowland(request: Request):
     try:
