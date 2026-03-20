@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Resumo de Recursos -->
+    <div class="card-bg p-6 rounded-xl border-l-4 marvel-border shadow-xl transform hover:scale-105 transition">
+        <h3 class="text-slate-400 font-bold mb-2 uppercase text-xs tracking-widest">Total Personagens</h3>
+        <p class="text-4xl font-black text-white">{{ inventory|length }}</p>
+    </div>
+    <div class="card-bg p-6 rounded-xl border-l-4 border-yellow-500 shadow-xl transform hover:scale-105 transition">
+        <h3 class="text-slate-400 font-bold mb-2 uppercase text-xs tracking-widest">Tier-3 / Transcended</h3>
+        <p class="text-4xl font-black text-white">
+            {{ inventory|selectattr("current_tier", "in", ["T3", "Transcended"])|list|length }}
+        </p>
+    </div>
+    <div class="card-bg p-6 rounded-xl border-l-4 border-cyan-400 shadow-xl transform hover:scale-105 transition">
+        <h3 class="text-slate-400 font-bold mb-2 uppercase text-xs tracking-widest">Tier-4 Prontos</h3>
+        <p class="text-4xl font-black text-white">
+            {{ inventory|selectattr("current_tier", "equalto", "T4")|list|length }}
+        </p>
+    </div>
+</div>
+
+<div class="mt-12">
+    <div class="flex justify-between items-end mb-6">
+        <h2 class="text-3xl font-black italic uppercase tracking-tight">Destaques do Inventário</h2>
+        <a href="/inventory" class="text-slate-400 hover:text-white transition text-sm font-bold uppercase underline decoration-marvel-red decoration-2">Ver Todos</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {% for char in inventory[:5] %}
+        <div class="card-bg rounded-lg overflow-hidden border border-slate-700 hover:border-slate-500 transition-all shadow-lg group">
+            <div class="h-40 bg-slate-800 flex items-center justify-center relative overflow-hidden">
+                <!-- Ícone de Personagem (Placeholder) -->
+                <i class="fa-solid fa-user-ninja text-4xl text-slate-700 group-hover:scale-110 transition duration-500"></i>
+                <div class="absolute top-2 right-2 px-2 py-0.5 rounded bg-black/50 text-[10px] font-black uppercase tracking-tighter">
+                    {{ char.current_tier }}
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p class="text-xs font-bold truncate">{{ char.name }}</p>
+                </div>
+            </div>
+            <div class="p-3 flex justify-between items-center text-[10px] font-black uppercase">
+                <span class="{% if char.base_type == 'Combat' %}text-red-500{% elif char.base_type == 'Blast' %}text-cyan-400{% elif char.base_type == 'Speed' %}text-green-400{% else %}text-purple-400{% endif %}">
+                    {{ char.base_type }}
+                </span>
+                <span class="text-slate-400">{{ char.base_alignment }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="mt-12 p-8 rounded-2xl bg-gradient-to-r from-red-600 to-red-900 shadow-2xl relative overflow-hidden">
+    <div class="relative z-10">
+        <h2 class="text-2xl font-black uppercase italic mb-2 tracking-tighter">Pronto para a Shadowland?</h2>
+        <p class="text-slate-200 mb-6 text-sm max-w-md">Nosso algoritmo mapeou os andares. Otimize seu elenco e chegue ao andar 135+ economizando seus T4.</p>
+        <a href="/shadowland" class="inline-block bg-white text-black font-black uppercase px-6 py-3 rounded-md hover:bg-slate-200 transition text-sm tracking-widest shadow-lg">Entrar na Torre</a>
+    </div>
+    <i class="fa-solid fa-tower-observation absolute right-[-20px] bottom-[-20px] text-[120px] text-black/10 rotate-12"></i>
+</div>
+{% endblock %}

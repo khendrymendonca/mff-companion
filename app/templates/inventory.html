@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-end mb-8">
+    <div>
+        <h2 class="text-4xl font-black italic uppercase tracking-tighter">Seu Inventário</h2>
+        <p class="text-slate-400 text-sm mt-1">Gerencie seu elenco e prepare-se para as missões.</p>
+    </div>
+    <div class="flex gap-2">
+        <button class="bg-slate-800 px-4 py-2 rounded font-bold text-xs uppercase hover:bg-slate-700 transition">Filtrar</button>
+        <button class="marvel-red px-4 py-2 rounded font-bold text-xs uppercase hover:opacity-90 transition">Adicionar Novo</button>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+    {% for char in inventory %}
+    <div class="card-bg rounded-xl overflow-hidden border border-slate-800 hover:border-marvel-red transition-all duration-300 group shadow-lg">
+        <div class="h-48 bg-slate-900 flex items-center justify-center relative">
+            <i class="fa-solid fa-user-shield text-5xl text-slate-800 group-hover:text-slate-700 transition"></i>
+            <div class="absolute top-3 left-3 flex gap-1">
+                <span class="px-2 py-0.5 rounded bg-black/60 text-[10px] font-black uppercase tracking-tighter">{{ char.current_tier }}</span>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
+                <p class="font-black text-sm uppercase italic truncate">{{ char.name }}</p>
+            </div>
+        </div>
+        <div class="p-4 flex justify-between items-center">
+            <span class="text-[10px] font-black uppercase text-slate-400">
+                <i class="fa-solid {% if char.base_type == 'Combat' %}fa-hand-fist text-red-500{% elif char.base_type == 'Blast' %}fa-bolt text-cyan-400{% elif char.base_type == 'Speed' %}fa-person-running text-green-400{% else %}fa-star text-purple-400{% endif %} mr-1"></i>
+                {{ char.base_type }}
+            </span>
+            <span class="text-[10px] font-black uppercase {% if char.base_alignment == 'Hero' %}text-blue-400{% else %}text-red-400{% endif %}">
+                {{ char.base_alignment }}
+            </span>
+        </div>
+        <div class="px-4 pb-4">
+            <button class="w-full py-2 bg-slate-800 rounded text-[10px] font-black uppercase hover:bg-slate-700 transition">Editar Status</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
