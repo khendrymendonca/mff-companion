@@ -39,7 +39,8 @@ async def read_root(request: Request):
 @app.get("/gallery")
 async def gallery(request: Request):
     heroes = db.get_heroes()
-    return templates.TemplateResponse("inventory.html", {"request": request, "inventory": heroes})
+    meta = db.get_meta()
+    return templates.TemplateResponse("inventory.html", {"request": request, "inventory": heroes, "meta": meta})
 
 @app.post("/add-hero")
 async def add_hero(
@@ -59,11 +60,28 @@ async def add_hero(
 async def shadowland(request: Request):
     rooms = db.get_sl_rooms()
     heroes = db.get_heroes()
+    meta = db.get_meta()
     return templates.TemplateResponse("shadowland.html", {
         "request": request, 
         "floors": rooms, 
-        "inventory": heroes
+        "inventory": heroes,
+        "meta": meta
     })
+
+@app.get("/settings")
+async def settings(request: Request):
+    meta = db.get_meta()
+    return templates.TemplateResponse("settings.html", {"request": request, "meta": meta})
+
+@app.post("/add-meta")
+async def add_meta(category: str = Form(...), name: str = Form(...)):
+    db.add_meta(category, name)
+    return RedirectResponse(url="/settings", status_code=303)
+
+@app.post("/delete-meta")
+async def delete_meta(category: str = Form(...), item_id: int = Form(...)):
+    db.delete_meta(category, item_id)
+    return RedirectResponse(url="/settings", status_code=303)
 
 @app.post("/add-room")
 async def add_room(

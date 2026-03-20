@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-12">
+    <h2 class="text-4xl font-black italic uppercase tracking-tighter">Configurações</h2>
+    <p class="text-slate-400 text-sm mt-1">Gerencie os metadados dinâmicos do seu MFF Companion.</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <!-- Tipos -->
+    <div class="card-bg p-6 rounded-2xl border border-slate-800">
+        <h3 class="text-lg font-black uppercase italic mb-4 text-cyan-400">Tipos</h3>
+        <ul class="space-y-2 mb-4">
+            {% for item in meta.types %}
+            <li class="flex justify-between items-center text-sm bg-slate-900 px-3 py-2 rounded">
+                <span>{{ item.name }}</span>
+                <form action="/delete-meta" method="POST">
+                    <input type="hidden" name="category" value="type">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" class="text-red-600 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <form action="/add-meta" method="POST" class="flex gap-2">
+            <input type="hidden" name="category" value="type">
+            <input type="text" name="name" placeholder="Novo Tipo" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs">
+            <button type="submit" class="marvel-red px-3 py-2 rounded text-xs">+</button>
+        </form>
+    </div>
+
+    <!-- Lados -->
+    <div class="card-bg p-6 rounded-2xl border border-slate-800">
+        <h3 class="text-lg font-black uppercase italic mb-4 text-yellow-400">Alinhamento</h3>
+        <ul class="space-y-2 mb-4">
+            {% for item in meta.alignments %}
+            <li class="flex justify-between items-center text-sm bg-slate-900 px-3 py-2 rounded">
+                <span>{{ item.name }}</span>
+                <form action="/delete-meta" method="POST">
+                    <input type="hidden" name="category" value="alignment">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" class="text-red-600 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <form action="/add-meta" method="POST" class="flex gap-2">
+            <input type="hidden" name="category" value="alignment">
+            <input type="text" name="name" placeholder="Novo Lado" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs">
+            <button type="submit" class="marvel-red px-3 py-2 rounded text-xs">+</button>
+        </form>
+    </div>
+
+    <!-- Sexos -->
+    <div class="card-bg p-6 rounded-2xl border border-slate-800">
+        <h3 class="text-lg font-black uppercase italic mb-4 text-purple-400">Gênero</h3>
+        <ul class="space-y-2 mb-4">
+            {% for item in meta.genders %}
+            <li class="flex justify-between items-center text-sm bg-slate-900 px-3 py-2 rounded">
+                <span>{{ item.name }}</span>
+                <form action="/delete-meta" method="POST">
+                    <input type="hidden" name="category" value="gender">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" class="text-red-600 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <form action="/add-meta" method="POST" class="flex gap-2">
+            <input type="hidden" name="category" value="gender">
+            <input type="text" name="name" placeholder="Novo Sexo" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs">
+            <button type="submit" class="marvel-red px-3 py-2 rounded text-xs">+</button>
+        </form>
+    </div>
+
+    <!-- Tags -->
+    <div class="card-bg p-6 rounded-2xl border border-slate-800">
+        <h3 class="text-lg font-black uppercase italic mb-4 text-green-400">Tags SL</h3>
+        <ul class="space-y-2 mb-4">
+            {% for item in meta.tags %}
+            <li class="flex justify-between items-center text-sm bg-slate-900 px-3 py-2 rounded">
+                <span>{{ item.name }}</span>
+                <form action="/delete-meta" method="POST">
+                    <input type="hidden" name="category" value="tag">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit" class="text-red-600 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <form action="/add-meta" method="POST" class="flex gap-2">
+            <input type="hidden" name="category" value="tag">
+            <input type="text" name="name" placeholder="Nova Tag" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-xs">
+            <button type="submit" class="marvel-red px-3 py-2 rounded text-xs">+</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

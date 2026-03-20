@@ -61,18 +61,17 @@
                 <div>
                     <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tipo</label>
                     <select name="base_type" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
-                        <option value="Combat">Combat</option>
-                        <option value="Blast">Blast</option>
-                        <option value="Speed">Speed</option>
-                        <option value="Universal">Universal</option>
+                        {% for t in meta.types %}
+                        <option value="{{ t.name }}">{{ t.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Alinhamento</label>
                     <select name="base_alignment" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
-                        <option value="Hero">Hero</option>
-                        <option value="Villain">Villain</option>
-                        <option value="Neutral">Neutral</option>
+                        {% for a in meta.alignments %}
+                        <option value="{{ a.name }}">{{ a.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -80,8 +79,9 @@
                 <div>
                     <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Gênero</label>
                     <select name="gender" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm outline-none">
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
+                        {% for g in meta.genders %}
+                        <option value="{{ g.name }}">{{ g.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div>

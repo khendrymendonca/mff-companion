@@ -89,27 +89,27 @@
                     <label class="label-style">Tipo</label>
                     <select name="req_type" class="input-style">
                         <option value="Any">Qualquer</option>
-                        <option value="Combat">Combat</option>
-                        <option value="Blast">Blast</option>
-                        <option value="Speed">Speed</option>
-                        <option value="Universal">Universal</option>
+                        {% for t in meta.types %}
+                        <option value="{{ t.name }}">{{ t.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div>
                     <label class="label-style">Lado</label>
                     <select name="req_alignment" class="input-style">
                         <option value="Any">Qualquer</option>
-                        <option value="Hero">Hero</option>
-                        <option value="Villain">Villain</option>
-                        <option value="Neutral">Neutral</option>
+                        {% for a in meta.alignments %}
+                        <option value="{{ a.name }}">{{ a.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div>
                     <label class="label-style">Gênero</label>
                     <select name="req_gender" class="input-style">
                         <option value="Any">Qualquer</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
+                        {% for g in meta.genders %}
+                        <option value="{{ g.name }}">{{ g.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>

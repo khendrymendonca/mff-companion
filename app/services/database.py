@@ -69,6 +69,29 @@ def add_room(self, floor_num, name, r_type, r_alignment, r_gender, r_tags=None, 
             "character_id": inv.data['character_id']
         }).execute()
 
-    def reset_sl_week(self):
-        # Limpa o status de 'is_used' de todos os heróis para a nova semana
-        return self.supabase.table("user_inventory").update({"is_used": False}).neq("id", 0).execute()
+    # METADADOS (CONFIGURAÇÕES)
+    def get_meta(self):
+        return {
+            "types": self.supabase.table("meta_types").select("*").execute().data,
+            "alignments": self.supabase.table("meta_alignments").select("*").execute().data,
+            "genders": self.supabase.table("meta_genders").select("*").execute().data,
+            "tags": self.supabase.table("meta_tags").select("*").execute().data
+        }
+
+    def add_meta(self, category, name):
+        table_map = {
+            "type": "meta_types",
+            "alignment": "meta_alignments",
+            "gender": "meta_genders",
+            "tag": "meta_tags"
+        }
+        return self.supabase.table(table_map[category]).insert({"name": name}).execute()
+
+    def delete_meta(self, category, item_id):
+        table_map = {
+            "type": "meta_types",
+            "alignment": "meta_alignments",
+            "gender": "meta_genders",
+            "tag": "meta_tags"
+        }
+        return self.supabase.table(table_map[category]).delete().eq("id", item_id).execute()
