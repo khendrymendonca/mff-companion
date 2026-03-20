@@ -23,6 +23,10 @@ if os.path.exists(static_dir):
 async def favicon():
     return Response(status_code=204)
 
+@app.get("/inventory", include_in_schema=False)
+async def old_inventory():
+    return RedirectResponse(url="/gallery", status_code=301)
+
 @app.get("/")
 async def read_root(request: Request):
     heroes = db.get_heroes()
