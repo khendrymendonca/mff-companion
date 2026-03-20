@@ -29,22 +29,30 @@ async def old_inventory():
 
 @app.get("/")
 async def read_root(request: Request):
-    heroes = db.get_heroes()
-    t3_count = len([c for c in heroes if c['current_tier'] in [Tier.T3.value, Tier.TRANSCENDED.value]])
-    t4_count = len([c for c in heroes if c['current_tier'] == Tier.T4.value])
-    
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request, 
-        "inventory": heroes,
-        "t3_count": t3_count,
-        "t4_count": t4_count
-    })
+    try:
+        heroes = db.get_heroes() or []
+        t3_count = len([c for c in heroes if c.get('current_tier') in ['T3', 'Transcended']])
+        t4_count = len([c for c in heroes if c.get('current_tier') == 'T4'])
+        
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request, 
+            "inventory": heroes,
+            "t3_count": t3_count,
+            "t4_count": t4_count
+        })
+    except Exception as e:
+        print(f"Erro na Dashboard: {e}")
+        return templates.TemplateResponse("dashboard.html", {"request": request, "inventory": [], "t3_count": 0, "t4_count": 0})
 
 @app.get("/gallery")
 async def gallery(request: Request):
-    heroes = db.get_heroes()
-    meta = db.get_meta()
-    return templates.TemplateResponse("inventory.html", {"request": request, "inventory": heroes, "meta": meta})
+    try:
+        heroes = db.get_heroes() or []
+        meta = db.get_meta()
+        return templates.TemplateResponse("inventory.html", {"request": request, "inventory": heroes, "meta": meta})
+    except Exception as e:
+        print(f"Erro na Galeria: {e}")
+        return templates.TemplateResponse("inventory.html", {"request": request, "inventory": [], "meta": {"types": [], "alignments": [], "genders": [], "tags": []}})
 
 @app.post("/add-hero")
 async def add_hero(

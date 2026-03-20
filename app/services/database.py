@@ -71,12 +71,20 @@ def add_room(self, floor_num, name, r_type, r_alignment, r_gender, r_tags=None, 
 
     # METADADOS (CONFIGURAÇÕES)
     def get_meta(self):
-        return {
-            "types": self.supabase.table("meta_types").select("*").execute().data,
-            "alignments": self.supabase.table("meta_alignments").select("*").execute().data,
-            "genders": self.supabase.table("meta_genders").select("*").execute().data,
-            "tags": self.supabase.table("meta_tags").select("*").execute().data
-        }
+        try:
+            types = self.supabase.table("meta_types").select("*").execute().data or []
+            alignments = self.supabase.table("meta_alignments").select("*").execute().data or []
+            genders = self.supabase.table("meta_genders").select("*").execute().data or []
+            tags = self.supabase.table("meta_tags").select("*").execute().data or []
+            return {
+                "types": types,
+                "alignments": alignments,
+                "genders": genders,
+                "tags": tags
+            }
+        except Exception as e:
+            print(f"Erro ao buscar metadados: {e}")
+            return {"types": [], "alignments": [], "genders": [], "tags": []}
 
     def add_meta(self, category, name):
         table_map = {
