@@ -2,10 +2,13 @@ from fastapi import FastAPI, Request, Response, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
-from app.models.character import CharacterType, Alignment, Tier
-from app.services.database import DatabaseService
 import os
 import sys
+
+# Garante que o diretório raiz esteja no PATH para imports
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from app.services.database import DatabaseService
 
 app = FastAPI()
 db = DatabaseService()
@@ -30,7 +33,7 @@ async def old_inventory():
 @app.get("/")
 async def read_root(request: Request):
     try:
-        heroes = db.get_heroes() or []
+        heroes = db.get_heroes()
         t3_count = len([c for c in heroes if c.get('current_tier') in ['T3', 'Transcended']])
         t4_count = len([c for c in heroes if c.get('current_tier') == 'T4'])
         
@@ -42,17 +45,23 @@ async def read_root(request: Request):
         })
     except Exception as e:
         print(f"Erro na Dashboard: {e}")
-        return templates.TemplateResponse("dashboard.html", {"request": request, "inventory": [], "t3_count": 0, "t4_count": 0})
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request, "inventory": [], "t3_count": 0, "t4_count": 0
+        })
 
 @app.get("/gallery")
 async def gallery(request: Request):
     try:
-        heroes = db.get_heroes() or []
+        heroes = db.get_heroes()
         meta = db.get_meta()
-        return templates.TemplateResponse("inventory.html", {"request": request, "inventory": heroes, "meta": meta})
+        return templates.TemplateResponse("inventory.html", {
+            "request": request, "inventory": heroes, "meta": meta
+        })
     except Exception as e:
         print(f"Erro na Galeria: {e}")
-        return templates.TemplateResponse("inventory.html", {"request": request, "inventory": [], "meta": {"types": [], "alignments": [], "genders": [], "tags": []}})
+        return templates.TemplateResponse("inventory.html", {
+            "request": request, "inventory": [], "meta": {"types": [], "alignments": [], "genders": [], "tags": []}
+        })
 
 @app.post("/add-hero")
 async def add_hero(
@@ -70,20 +79,32 @@ async def add_hero(
 
 @app.get("/shadowland")
 async def shadowland(request: Request):
-    rooms = db.get_sl_rooms()
-    heroes = db.get_heroes()
-    meta = db.get_meta()
-    return templates.TemplateResponse("shadowland.html", {
-        "request": request, 
-        "floors": rooms, 
-        "inventory": heroes,
-        "meta": meta
-    })
+    try:
+        rooms = db.get_sl_rooms()
+        heroes = db.get_heroes()
+        meta = db.get_meta()
+        return templates.TemplateResponse("shadowland.html", {
+            "request": request, 
+            "floors": rooms, 
+            "inventory": heroes,
+            "meta": meta
+        })
+    except Exception as e:
+        print(f"Erro na Shadowland: {e}")
+        return templates.TemplateResponse("shadowland.html", {
+            "request": request, "floors": [], "inventory": [], "meta": {"types": [], "alignments": [], "genders": [], "tags": []}
+        })
 
 @app.get("/settings")
 async def settings(request: Request):
-    meta = db.get_meta()
-    return templates.TemplateResponse("settings.html", {"request": request, "meta": meta})
+    try:
+        meta = db.get_meta()
+        return templates.TemplateResponse("settings.html", {"request": request, "meta": meta})
+    except Exception as e:
+        print(f"Erro em Settings: {e}")
+        return templates.TemplateResponse("settings.html", {
+            "request": request, "meta": {"types": [], "alignments": [], "genders": [], "tags": []}
+        })
 
 @app.post("/add-meta")
 async def add_meta(category: str = Form(...), name: str = Form(...)):
